@@ -1,5 +1,5 @@
 # Service Portal x-Stock Widget
-A simple widget that demonstrates following 
+A simple widget that demonstrates following:
 
 - Bootstrap inline form
 - Flexbox wrapping
