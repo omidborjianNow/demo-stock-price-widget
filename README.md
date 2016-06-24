@@ -6,7 +6,7 @@ A simple widget that demonstrates following:
 - Scoped SCSS
 - Client / Server interaction
 - GlideHTTP to an external service
-- EXMA5 JSON.parse, encode URIL
+- EXMA5 JSON.parse, encode URL
 
 
 
