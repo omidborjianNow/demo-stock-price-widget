@@ -10,7 +10,7 @@ A sample widget that demonstrates following:
 
 ##Preview
 
-
+![Demo Stock Price](images/preview.png "Demo Stock Price")
 
 ## Installation
 

@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2016-06-24 17:16:31">
+<sp_widget action="INSERT_OR_UPDATE">
+<client_script><![CDATA[function () {
+	var c = this;
+	setResponse(c.data.response);
+	
+	c.getStock = function() {	 
+		c.server.get({symbols: c.data.symbols}).then(function(r) {			
+			setResponse(r.data.response);
+		});	  
+	};
+
+	function setResponse(response) {
+		c.quotes = response.query.results.quote;
+		if (!angular.isArray(c.quotes))
+			c.quotes = [c.quotes];		
+	}
+}]]></client_script>
+<controller_as>c</controller_as>
+<css>.table {
+  width: 20em;
+}
+
+.positive {
+  color: green;
+}
+
+.negative {
+  color: red;
+}
+
+.quote {
+  margin-right: 2em;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+h4, label {
+  color: black;
+}
+</css>
+<data_table>sp_instance</data_table>
+<demo_data/>
+<description/>
+<docs display_value=""/>
+<field_list/>
+<has_preview>true</has_preview>
+<id>x-stock</id>
+<internal>false</internal>
+<link/>
+<name>Demo Stock Price</name>
+<option_schema/>
+<public>true</public>
+<roles/>
+<script><![CDATA[(function() {
+	// keep symbols in a user preference
+	var u = gs.getUser();
+	if (input) 
+		data.symbols = input.symbols;
+	else
+		data.symbols = u.getPreference('sp.symbols') || 'now msft crm wday';
+
+	u.savePreference('sp.symbols', data.symbols);
+	
+	// call out to yahoo, for info see:
+	// https://developer.yahoo.com/yql/console/?q=show%20tables&env=store://datatables.org/alltableswithkeys
+	var q = 'select * from yahoo.finance.quotes where symbol in ("' + data.symbols + '")';
+	var url = "https://query.yahooapis.com/v1/public/yql";
+	var ws = new GlideHTTPRequest(url);
+	ws.addParameter("q", encodeURI(q));
+	ws.addParameter("env", encodeURI("store://datatables.org/alltableswithkeys"));
+	ws.addParameter("format", "json");
+	var resp = ws.get();
+	data.response = JSON.parse(resp.getBody());
+})();]]></script>
+<servicenow>false</servicenow>
+<sys_class_name>sp_widget</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2016-05-21 14:21:24</sys_created_on>
+<sys_customer_update>false</sys_customer_update>
+<sys_id>dc64b091df231200ba13a4836bf263ab</sys_id>
+<sys_mod_count>124</sys_mod_count>
+<sys_name>Demo Stock Price</sys_name>
+<sys_package display_value="Service Portal Test Pages">adc0a0584fd422008a959a211310c7f1</sys_package>
+<sys_policy/>
+<sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sp_widget_dc64b091df231200ba13a4836bf263ab</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2016-06-13 01:42:07</sys_updated_on>
+<template><![CDATA[<div>
+  <form class="form-inline">
+    <label class="control-label" for="symbols">${Symbols}</label>
+    <div class="input-group">
+      <input class="form-control" placeholder="Enter Symbol" ng-model="c.data.symbols">  
+      <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary" ng-click="c.getStock();">${Go}</button>
+      </span>
+    </div>
+  </form>
+
+  <div class="flex-row flex-wrap">
+    <div ng-repeat="q in c.quotes" class="quote">
+      <h4>{{q.symbol}} - {{q.Name}}</h4>
+      <table class="table">
+        <tr><td>Price </td><td>{{q.LastTradePriceOnly}}</td></tr>
+        <tr><td>Change </td><td ng-class="{ 'positive': q.Change.startsWith('+'), 'negative': q.Change.startsWith('-') }">{{q.Change}}, {{q.ChangeinPercent}}</td></tr>
+        <tr><td>Day Range </td><td>{{q.DaysRange}}</td></tr>
+        <tr><td>Volume </td><td>{{q.Volume | number}}</td></tr>
+        <tr><td>Market cap </td><td>{{q.MarketCapitalization}}</td></tr>
+      </table>
+    </div>
+  </div>
+</div>]]></template>
+</sp_widget>
+<sp_widget action="INSERT_OR_UPDATE">
+<client_script><![CDATA[function() {	
+	var c = this;
+	c.update = function() {
+		c.data.price = false;
+		c.server.get({symbol: c.data.symbol}).then(function(r) {			
+			c.data.price = r.data.price;			
+		});
+	}
+}]]></client_script>
+<controller_as>c</controller_as>
+<css/>
+<data_table>sp_instance</data_table>
+<demo_data/>
+<description/>
+<docs display_value=""/>
+<field_list/>
+<has_preview>false</has_preview>
+<id>widget-stock</id>
+<internal>false</internal>
+<link/>
+<name>Stock</name>
+<option_schema/>
+<public>true</public>
+<roles/>
+<script><![CDATA[if (input) {
+	var r = new RESTMessage('Yahoo Finance', 'get');
+	r.setStringParameter('symbol', input.symbol);
+	var response = r.execute();
+	data.price = response.getBody();
+}]]></script>
+<servicenow>true</servicenow>
+<sys_class_name>sp_widget</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2015-02-24 23:23:08</sys_created_on>
+<sys_customer_update>false</sys_customer_update>
+<sys_id>b8c1c333d7123100a9ad1e173e24d45e</sys_id>
+<sys_mod_count>83</sys_mod_count>
+<sys_name>Stock</sys_name>
+<sys_package display_value="Service Portal - Core">b5ab03cc4fd022008a959a211310c792</sys_package>
+<sys_policy/>
+<sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sp_widget_b8c1c333d7123100a9ad1e173e24d45e</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2016-02-26 19:01:02</sys_updated_on>
+<template><![CDATA[<div>${Symbol Lookup}: <input ng-model="c.data.symbol" ng-model-options="{debounce: 750}" ng-change="c.update()" placeholder="Type stock symbol" />
+<div ng-show="c.data.symbol" style="font-size: 2em;">        
+  <p>${Stock Price}: <span ng-if="!c.data.price">${Requesting stock price}</span><span>{{c.data.price | currency:"$"}}</span></p>
+ <img ng-src="http://chart.finance.yahoo.com/z?s={{c.data.symbol}}&t=1d&z=l"/>
+</div>
+</div>]]></template>
+</sp_widget>
+<sp_widget action="INSERT_OR_UPDATE">
+<client_script/>
+<controller_as/>
+<css/>
+<data_table>sp_instance</data_table>
+<demo_data/>
+<description/>
+<docs display_value=""/>
+<field_list/>
+<has_preview>false</has_preview>
+<id/>
+<internal>false</internal>
+<link/>
+<name>Stock Footer</name>
+<option_schema/>
+<public>true</public>
+<roles/>
+<script><![CDATA[// populate the 'data' object]]></script>
+<servicenow>true</servicenow>
+<sys_class_name>sp_widget</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2015-07-06 22:48:43</sys_created_on>
+<sys_customer_update>false</sys_customer_update>
+<sys_id>fc4be21acb01020000f8d856634c9c40</sys_id>
+<sys_mod_count>10</sys_mod_count>
+<sys_name>Stock Footer</sys_name>
+<sys_package display_value="Service Portal - Core">b5ab03cc4fd022008a959a211310c792</sys_package>
+<sys_policy/>
+<sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sp_widget_fc4be21acb01020000f8d856634c9c40</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2016-02-26 19:01:02</sys_updated_on>
+<template><![CDATA[<div class="footer bg-dark m-t-lg">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12 text-center">
+        <span class="navbar-brand navbar-brand-logo">
+          <a ng-if="options.logo" href="?">
+            <img ng-src="{{options.logo}}" style="height:22px" />
+          </a>
+        </span>
+
+        <div class="text-muted">${Service Portal}</div>
+
+      </div>
+    </div>
+  </div></div>]]></template>
+</sp_widget>
+<sp_header_footer action="INSERT_OR_UPDATE">
+<client_script><![CDATA[function ($rootScope, $scope, snRecordWatcher, spUtil, $location, $uibModal, cabrillo, $timeout) {
+	$scope.userID = $scope.user.sys_id;
+	if (cabrillo.isNative())
+		$scope.isViewNative = true;
+
+	$scope.openPopUp = function() {
+		var url = "$chat_support.do?queueID=" + $scope.data.connect_support_queue_id;
+		var popup = window.open (url, "popup", "width=900, height=600"); 
+	};
+
+	$scope.openLogin = function () {
+		$scope.modalInstance = $uibModal.open({
+			templateUrl: 'modalLogin',
+			scope: $scope
+		});
+	};
+
+	$rootScope.$on('sp.avatar_changed', function() {
+		$scope.userID = "";
+		$timeout(function(){
+			$scope.userID = $scope.user.sys_id;
+		});
+	});
+
+	$scope.isHomepage = function() {
+		if (!$scope.page.id)
+			return true;
+
+		if ($scope.page.id == $scope.portal.homepage_dv)
+			return true;
+
+		return false;
+	};
+
+}]]></client_script>
+<controller_as/>
+<css>.navbar {
+  transition: 250ms opacity ease-in-out; 
+  -webkit-transition: 250ms opacity ease-in-out; 
+  border: 0;
+  border-bottom: 4px solid $sp-navbar-divider-color;
+}
+
+.navbar-fade {
+  opacity: 0.4;
+}
+
+.navbar-inverse .navbar-toggle {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.nav &gt; li &gt; a {
+  max-height: 50px;
+}
+
+.navbar-brand {
+  height: 50px;
+  padding: 0;
+}
+
+.navbar-brand img, .navbar-brand span {
+  margin-left: $sp-logo-margin-x;
+  margin-right: $sp-logo-margin-x;
+  margin-top: $sp-logo-margin-y;
+  margin-bottom: $sp-logo-margin-y;
+  display: block;
+  max-height: $sp-logo-max-height;
+  max-width: $sp-logo-max-width;
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+.breadcrumb-container {
+  background-color: $panel-bg;
+}
+
+/* for mobile app */
+.navbar-inverse.is-native {
+  background-color: #405060;
+}
+
+nav{
+ margin-bottom: 0px;
+ border-radius: 0px; 
+}
+
+.navbar-collapse{
+padding-right: 0px;
+}
+
+.navbar-nav {
+margin: 0px;
+}
+
+</css>
+<data_table>sp_instance</data_table>
+<demo_data/>
+<description/>
+<docs display_value=""/>
+<field_list/>
+<has_preview>false</has_preview>
+<id/>
+<internal>false</internal>
+<link><![CDATA[function(scope, element) {	
+	$(element).on('click.nav','.navbar-collapse.in',function(e) {	
+		var target = $(e.target);
+		if (target.is('a')) {
+			// collapse mobile nav if clicked an anchor
+			$(this).removeClass('in').addClass('collapse');
+			return;
+		}
+		
+		// if neither target nor parent is an anchor, do nothing
+		if (!target.parent().is('a'))
+			return;
+		
+		// collapse mobile nav if target is part of a submenu
+		if (target.parents("ul.dropdown-menu").length > 0)
+			$(this).removeClass('in').addClass('collapse');
+	});
+}]]></link>
+<name>Stock Header </name>
+<option_schema/>
+<public>true</public>
+<roles/>
+<script><![CDATA[// Defines the support queue ID that will be linked to by the Live Chat link in header
+data.connect_support_queue_id = $sp.getValue('sp_chat_queue');
+data.login_page = $sp.getValue('login_page');
+var menu = $sp.getValue("sp_rectangle_menu");
+data.menu = $sp.getWidgetFromInstance(menu);
+if (data.menu && data.menu.data) {
+	data.menu.data.replace = true;
+	// Hide login if menu already has link to login
+	data.hasLogin = false;
+	if (data.menu.data.menu.items) {
+		for(var i in data.menu.data.menu.items) {
+			var item = data.menu.data.menu.items[i];
+			if (item.type == 'page' && item.sp_page == data.login_page)
+				data.hasLogin = true;
+		}
+	}
+}
+
+data.loginWidget = $sp.getWidgetFromInstance('login-modal');
+data.typeahead = $sp.getWidgetFromInstance('typeahead-search');]]></script>
+<servicenow>true</servicenow>
+<sys_class_name>sp_header_footer</sys_class_name>
+<sys_created_by>admin</sys_created_by>
+<sys_created_on>2015-12-16 23:21:34</sys_created_on>
+<sys_customer_update>false</sys_customer_update>
+<sys_id>bf5ec2f2cb10120000f8d856634c9c0c</sys_id>
+<sys_mod_count>242</sys_mod_count>
+<sys_name>Stock Header </sys_name>
+<sys_package display_value="Service Portal - Core">b5ab03cc4fd022008a959a211310c792</sys_package>
+<sys_policy/>
+<sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sp_header_footer_bf5ec2f2cb10120000f8d856634c9c0c</sys_update_name>
+<sys_updated_by>admin</sys_updated_by>
+<sys_updated_on>2016-04-15 23:23:28</sys_updated_on>
+<template><![CDATA[<div>
+  <nav class="navbar-inverse" ng-class="::{'navbar':!isViewNative, 'is-native': isViewNative}"
+       role="navigation">
+    <div ng-show="::!isViewNative" class="navbar-header">
+      <a class="navbar-brand" ng-if="::!portal.logo" href="?id={{::portal.homepage_dv}}"><span>{{::portal.title}}</span></a>
+      <a class="navbar-brand navbar-brand-logo" ng-if="::portal.logo" href="?id={{::portal.homepage_dv}}">
+        <img ng-src="{{::portal.logo}}" />
+      </a>
+
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#sp-nav-bar">
+        <span class="sr-only">${Toggle navigation}</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <div sp-navbar-toggle="" class="collapse navbar-collapse navbar-right" id="sp-nav-bar">
+      <!-- Include The Menu -->
+      <sp-widget widget="data.menu"></sp-widget>
+      <ul ng-if="::(!user.logged_in && page.id != portal.login_page_dv && !data.hasLogin)" class="nav navbar-nav">
+        <li><a href ng-click="openLogin()">${Login}</a></li>
+      </ul>
+      <ul ng-if="::user.logged_in" class="nav navbar-nav">
+        <!-- chat, avatar, and logout -->
+        <li ng-if="::data.connect_support_queue_id"><a href ng-click="openPopUp()">${Live Chat}</a></li>
+        <li class="dropdown hidden-xs">
+          <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">
+            <span class="navbar-avatar"><sn-avatar class="avatar-small-medium" primary="userID" /></span>
+            <span class="visible-lg-inline">{{::user.name}}</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a ng-href="?id=user_profile&sys_id={{::user.sys_id}}">${Profile}</a></li>
+            <li><a href="{{::portal.logoutUrl}}">${Logout}</a></li>
+          </ul>
+        </li>
+        <li class="visible-xs-block"><a ng-href="?id=user_profile&sys_id={{::user.sys_id}}"><span class="navbar-avatar"><sn-avatar class="avatar-small-medium" primary="userID" /></span>{{::user.name}}</a></li>
+        <li class="visible-xs-block"><a href="{{::portal.logoutUrl}}">${Logout}</a></li>
+      </ul>
+    </div>
+  </nav>  
+</div>]]></template>
+</sp_header_footer>
+</unload>
